@@ -1,0 +1,4 @@
+#!/bin/bash
+export AWS_REGION=<your-aws-region-code>
+export VPC_ID=<your-vpc-id>
+export SUBNET_IDS=<your-subnet-id-1>,<your-subnet-id-2>

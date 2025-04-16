@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "time-mcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@smithery/cli@latest",
+        "run",
+        "@yokingma/time-mcp",
+        "--key",
+        "<your-smithery-key>"
+      ]
+    },
+    "google-search-mcp-server": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@smithery/cli@^1.0.3",
+        "run",
+        "@gradusnikov/google-search-mcp-server",
+        "--config",
+        "{\"googleCseId\":\"<your-search-engine-id>\",\"googleApiKey\":\"<your-custom-search-api-key>\"}"
+      ]
+    }
+  }
+}
