@@ -91,7 +91,7 @@ npm run deploy         # CDK 코드기반 AWS 인프라스트럭쳐 배포
 
 1. 저장소를 클론하고, 의존성을 설치한 후 빌드하세요:
 ```bash
-git clone <repository-url>
+git clone https://github.com/junhwan0/bedrock-mcp-agent-cdk.git
 cd bedrock-mcp-agent-cdk
 ```
 

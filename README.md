@@ -91,7 +91,7 @@ npm run deploy       # Deploying CDK Code-Based AWS Infrastructure
 
 1. Clone the repository, install the dependencies, and build.:
 ```bash
-git clone <repository-url>
+git clone https://github.com/junhwan0/bedrock-mcp-agent-cdk.git
 cd bedrock-mcp-agent-cdk
 ```
 
