@@ -33,3 +33,6 @@ yarn-error.log*
 # config
 conf/*
 !conf/*.example
+
+# generated template
+client-example/generated-sagemaker-notebook-template.yaml
