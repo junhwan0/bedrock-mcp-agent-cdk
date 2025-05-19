@@ -25,6 +25,7 @@ export class BedrockAgentStack extends cdk.Stack {
     const accountId = cdk.Stack.of(this).account;
     const region = cdk.Stack.of(this).region;
     const novaInferenceProfileArn = `arn:aws:bedrock:${region}:${accountId}:inference-profile/us.amazon.nova-pro-v1:0`;
+    const novaModelArn = "arn:aws:bedrock:*::foundation-model/amazon.nova-pro-v1:0";
 
     const vpc = ec2.Vpc.fromLookup(this, 'VPC', {
       vpcId: props.vpcId
@@ -94,38 +95,38 @@ export class BedrockAgentStack extends cdk.Stack {
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         actions: ['bedrock:InvokeModel', 'bedrock:InvokeModelWithResponseStream', 'bedrock:GetInferenceProfile', 'bedrock:GetFoundationModel'],
-        resources: [novaInferenceProfileArn, '*']
+        resources: [novaInferenceProfileArn, novaModelArn]
       }),
-      new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        actions: ['s3:GetObject', 's3:GetObjectVersion', 's3:GetObjectVersionAttributes', 's3:GetObjectAttributes'],
-        resources: ['*']
-      }),
-      new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        actions: ['bedrock:Retrieve', 'bedrock:RetrieveAndGenerate'],
-        resources: ['*']
-      }),
-      new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        actions: ['bedrock:AssociateThirdPartyKnowledgeBase'],
-        resources: ['*']
-      }),
-      new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        actions: ['bedrock:GetPrompt'],
-        resources: ['*']
-      }),
-      new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        actions: ['bedrock:GetAgentAlias', 'bedrock:InvokeAgent'],
-        resources: ['*']
-      }),
-      new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        actions: ['bedrock:ApplyGuardrail'],
-        resources: ['*']
-      }),
+      // new iam.PolicyStatement({
+      //   effect: iam.Effect.ALLOW,
+      //   actions: ['s3:GetObject', 's3:GetObjectVersion', 's3:GetObjectVersionAttributes', 's3:GetObjectAttributes'],
+      //   resources: ['*']
+      // }),
+      // new iam.PolicyStatement({
+      //   effect: iam.Effect.ALLOW,
+      //   actions: ['bedrock:Retrieve', 'bedrock:RetrieveAndGenerate'],
+      //   resources: ['*']
+      // }),
+      // new iam.PolicyStatement({
+      //   effect: iam.Effect.ALLOW,
+      //   actions: ['bedrock:AssociateThirdPartyKnowledgeBase'],
+      //   resources: ['*']
+      // }),
+      // new iam.PolicyStatement({
+      //   effect: iam.Effect.ALLOW,
+      //   actions: ['bedrock:GetPrompt'],
+      //   resources: ['*']
+      // }),
+      // new iam.PolicyStatement({
+      //   effect: iam.Effect.ALLOW,
+      //   actions: ['bedrock:GetAgentAlias', 'bedrock:InvokeAgent'],
+      //   resources: ['*']
+      // }),
+      // new iam.PolicyStatement({
+      //   effect: iam.Effect.ALLOW,
+      //   actions: ['bedrock:ApplyGuardrail'],
+      //   resources: ['*']
+      // }),
     ]
 
     // Create IAM role for Bedrock Agent
