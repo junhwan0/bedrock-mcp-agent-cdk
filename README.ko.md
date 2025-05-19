@@ -201,21 +201,21 @@ Bundling 포함:
 }
 ```
 
-2. Google 검색 MCP 서버 구성:
+2. DuckDuckGo 검색 MCP 서버 구성:
 
 Bundling 미포함:
 ```json
 {
   "mcpServers": {
-    "google-search-mcp-server": {
+    "duckduckgo-mcp-server": {
       "command": "npx",
       "args": [
         "-y",
-        "@smithery/cli@^1.0.3",
+        "@smithery/cli@latest",
         "run",
-        "@gradusnikov/google-search-mcp-server",
-        "--config",
-        "{\"googleCseId\":\"your-search-engine-id\",\"googleApiKey\":\"your-api-key\"}"
+        "@nickclyde/duckduckgo-mcp-server",
+        "--key",
+        "<your-smithery-key>"
       ]
     }
   }
@@ -225,15 +225,15 @@ With bundling:
 ```json
 {
   "mcpServers": {
-    "google-search-mcp-server": {
+    "duckduckgo-mcp-server": {
       "command": "npx",
       "args": [
         "-y",
-        "@smithery/cli@^1.0.3",
+        "@smithery/cli@latest",
         "run",
-        "@gradusnikov/google-search-mcp-server",
-        "--config",
-        "{\"googleCseId\":\"your-search-engine-id\",\"googleApiKey\":\"your-api-key\"}"
+        "@nickclyde/duckduckgo-mcp-server",
+        "--key",
+        "<your-smithery-key>"
       ],
       "bundling": {
         "nodeModules": ["npm", "@smithery/cli"]
