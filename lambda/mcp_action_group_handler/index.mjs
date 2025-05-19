@@ -1,6 +1,13 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 
+// process.env.npm_config_cache = '/mnt/efs/.npm';
+// process.env.HOME = '/mnt/efs/home/';
+process.env.npm_config_cache = '/tmp/.npm';
+process.env.HOME = '/tmp/home/';
+// const mcpServerName = process.env.MCP_SERVER_NAME;
+const mcpServerConfig = JSON.parse(Buffer.from(process.env.MCP_SERVER_CONFIG, 'base64').toString('utf-8'));
+
 // Helper function to sanitize log data
 const sanitizeLogData = (data) => {
   if (typeof data !== 'string') {
@@ -36,90 +43,14 @@ const safeLogger = {
   info: (message, ...args) => safeLogger._log('info', message, ...args)
 };
 
-class ResourcePool {
-  constructor(maxSize, createClientFn) {
-    this.pool = [];
-    this.inUse = new Set();
-    this.maxSize = maxSize;
-    this.createClientFn = createClientFn;
-  }
-
-  async createNewClient() {
-    const client = await this.createClientFn();
-    return client;
-  }
-
-  async acquire() {
-    try {
-      if (this.pool.length > 0) {
-        const client = this.pool.pop();
-        this.inUse.add(client);
-        return client;
-      }
-
-      if (this.inUse.size < this.maxSize) {
-        const client = await this.createNewClient();
-        this.inUse.add(client);
-        return client;
-      }
-
-      return new Promise((resolve, reject) => {
-        const checkPool = setInterval(async () => {
-          try {
-            if (this.pool.length > 0) {
-              clearInterval(checkPool);
-              const client = this.pool.pop();
-              this.inUse.add(client);
-              resolve(client);
-            }
-          } catch (error) {
-            clearInterval(checkPool);
-            reject(error);
-          }
-        }, 100);
-      });
-    } catch (error) {
-      safeLogger.error('Error acquiring client:', error);
-      throw error;
-    }
-  }
-
-  release(client) {
-    if (this.inUse.has(client)) {
-      this.inUse.delete(client);
-      this.pool.push(client);
-    }
-  }
-
-  async handleError(client) {
-    try {
-      safeLogger.error('Error occurred with client:', client);
-      this.inUse.delete(client);
-      const newClient = await this.createNewClient();
-      this.pool.push(newClient);
-      return newClient;
-    } catch (error) {
-      safeLogger.error('Error creating new client:', error);
-      throw error;
-    }
-  }
-}
-
-const pool = new ResourcePool(5, async () => {
-  // process.env.npm_config_cache = '/mnt/efs/.npm';
-  // process.env.HOME = '/mnt/efs/home/';
-  process.env.npm_config_cache = '/tmp/.npm';
-  process.env.HOME = '/tmp/home/';
-  // const mcpServerName = process.env.MCP_SERVER_NAME;
-  const mcpServerConfig = JSON.parse(Buffer.from(process.env.MCP_SERVER_CONFIG, 'base64').toString('utf-8'));
+async function createClientFn() {
   const command = mcpServerConfig.command;
   const args = mcpServerConfig.args ?? [];
-  let env = mcpServerConfig.env ?? {};
-  env = { ...process.env, ...env };
+  const env = mcpServerConfig.env ?? {};
   const transport = new StdioClientTransport({
     command: command,
     args: args,
-    env: env
+    env: { ...process.env, ...env }
   });
   
   const client = new Client(
@@ -136,7 +67,7 @@ const pool = new ResourcePool(5, async () => {
 
   await client.connect(transport);
   return client;
-});
+}
 
 function convertPropertiesToArgs(properties) {
   return properties.reduce((args, prop) => {
@@ -178,7 +109,6 @@ function convertPropertiesToArgs(properties) {
 export const handler = async (event, context) => {
   safeLogger.log('start');
   const httpMethod = event.httpMethod;
-  const agent = event.agent;
   const actionGroup = event.actionGroup;
   const apiPath = event.apiPath;
   const parameters = event.parameters;
@@ -187,7 +117,6 @@ export const handler = async (event, context) => {
 
   safeLogger.log(JSON.stringify(event), null, 2)
   safeLogger.log(httpMethod);
-  safeLogger.log(agent);
   safeLogger.log(actionGroup);
   safeLogger.log(apiPath);
   safeLogger.log(parameters);
@@ -198,10 +127,9 @@ export const handler = async (event, context) => {
   }
   safeLogger.log(JSON.stringify(toolArg));
 
-  const client = await pool.acquire();
+  const client = await createClientFn();
   try {
     const result = await client.callTool(toolArg);
-    pool.release(client);
     const ret = {
       "messageVersion": "1.0",
       "response": {
@@ -217,10 +145,9 @@ export const handler = async (event, context) => {
       }
     }
     safeLogger.log(JSON.stringify(ret));
+    client.close();
     return ret;
   } catch (error) {
-    const newCclient = await pool.handleError(client);
-    pool.release(newCclient);
     throw error;
   }
 };
