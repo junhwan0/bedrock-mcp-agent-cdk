@@ -1,6 +1,4 @@
 #!/bin/bash
-. ../conf/vpc-info
-
 STACK_NAME=bedrock-agent-mcp-test-vpc
 
 aws cloudformation create-stack \
