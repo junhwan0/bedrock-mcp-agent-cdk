@@ -9,7 +9,10 @@
         "@yokingma/time-mcp",
         "--key",
         "<your-smithery-key>"
-      ]
+      ],
+      "bundling": {
+        "nodeModules": ["npm", "@smithery/cli"]
+      }
     },
     "duckduckgo-mcp-server": {
       "command": "npx",
@@ -20,7 +23,10 @@
         "@nickclyde/duckduckgo-mcp-server",
         "--key",
         "<your-smithery-key>"
-      ]
+      ],
+      "bundling": {
+        "nodeModules": ["npm", "@smithery/cli"]
+      }
     }
   }
 }
