@@ -69,11 +69,14 @@ The current implementation has the following limitations:
 
 ## Usage Instructions
 ### Prerequisites
-- Node.js 18.x or later
-- AWS CDK CLI v2.x
-- AWS CLI configured with appropriate credentials
+- Node.js v20.x or later
+- npm 10.x or later
+- AWS CLI v2.x or later
+- AWS CDK v2.x or later
+- git v2.x dltkd
+- Resource creation, permissions, including VPC, EC2, Bedrock Agent, Bedrock, Lambda, etc.
 - VPC with at least two private subnets
-- To run MCP Server, which requires Internet access, you need a public subnet and a NAT Gateway to access it.
+- To run MCP Server, which requires internet access, you need a public subnet and a NAT Gateway to access it.
 
 ### NPM Scripts
 The following npm scripts are available:
@@ -95,25 +98,39 @@ git clone https://github.com/junhwan0/bedrock-mcp-agent-cdk.git
 cd bedrock-mcp-agent-cdk
 ```
 
-2. Configure your VPC information(you can deploy example VPC using cloudformation template in base-infra-example directory or you can also utilize existing VPC):
+2. Deploy a VPC. The script below makes it easy to deploy a VPC with public and private subnets and automatically updates the configuration file conf/vpc-info with the deployment results. However, you don't need to use this script, you can use it to update conf/vpc-info with information about your existing VPCs:
 ```bash
-cp conf/vpc-info.example conf/vpc-info
-# Edit conf/vpc-info with your VPC ID, subnet IDs, and region code
+cd base-infra-example/
+./deploy.sh
 ```
 
 3. Configure MCP servers in conf/mcp.json:
+```bash
+cd ..
+cp conf/mcp.json.example conf/mcp.json
+```
+If you open the mcp.json copied above, you can see the example MCP Server configuration provided by smithery as shown below, except for smithery's API key. You need to log in to smithery, get the API key, and apply it to the configuration file to access MCP Server normally.
 ```json
 {
   "mcpServers": {
-    "your-mcp-server": {
+    "time-mcp": {
       "command": "npx",
-      "args": ["your-mcp-server-args"]
-    }
-  }
-}
+      "args": [
+        "-y",
+        "@smithery/cli@latest",
+        "run",
+        "@yokingma/time-mcp",
+        "--key",
+        "<your-smithery-key>"
+      ],
+      "bundling": {
+        "nodeModules": ["npm", "@smithery/cli"]
+      }
+    },
+    ...
 ```
 
-You can also specify bundling configuration for Lambda deployment(If you add bundling, you can pre-deploy the modules required by the npx command, reducing the time it takes to download the modules when the npx command is run):
+The bundling part of the above setting is not required, but if you specify a bundling configuration for your Lambda deployment, this setting allows you to pre-deploy the modules required by the npx command, reducing the time it takes to download the modules when the npx command is run:
 ```json
 {
   "mcpServers": {
@@ -144,17 +161,21 @@ npm run build
 ./synth.sh
 ```
 
-6. Deploy the stack:
+6. Deploy the stack. Make sure to note the BedrockAgentsId that is output after the deployment is complete so you can utilize it during testing.:
 ```bash
 ./deploy.sh
 ```
 
 ### Testing the Deployment
 
-After deploying the infrastructure, you can test the deployment using the provided Jupyter notebook in the client-example directory:
+After deploying the infrastructure, you can test it by deploying the Jupyter notebook files provided in the client-example directory to your Sagemaker AI Jupyter notebook instance. Once deployed, you will be provided with a URL that you can access with a web browser. Once you open the notebook, in the topmost cell, you will need to replace the agent_id with the value of BedrockAgentsId that you noted earlier in order to test it properly.:
+
+Translated with www.DeepL.com/Translator (free version)
 
 ```bash
-jupyter notebook client-example/bedrock-agent-test.ipynb
+cd client-example/
+./generate_template.sh
+./deploy.sh
 ```
 
 ### More Detailed MCP Sever configuration examples

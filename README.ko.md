@@ -69,9 +69,12 @@ Action Group은 Bedrock Agent의 핵심 구성 요소로, 에이전트가 수행
 
 ## 사용 방법
 ### 사전 요구 사항
-- Node.js 18.x 이상
-- AWS CDK CLI v2.x
-- 적절한 자격 증명으로 구성된 AWS CLI
+- Node.js v20.x 이상
+- npm 10.x 이상
+- AWS CLI v2.x 이상
+- AWS CDK v2.x 이상
+- git v2.x dltkd
+- VPC, EC2, Bedrock Agent, Bedrock, Lambda 등 리소스 생성, 사용 권한
 - 최소 두 개의 사설 서브넷이 있는 VPC
 - 인터넷 접근이 필요한 MCP Server를 구동하기 위해서는 public subnet 및 이에 접근하기 위한 NAT Gateway가 필요합니다.
 
@@ -95,25 +98,39 @@ git clone https://github.com/junhwan0/bedrock-mcp-agent-cdk.git
 cd bedrock-mcp-agent-cdk
 ```
 
-2. VPC 정보를 구성하세요(base-infra-example 디렉토리의 cloudformation 템플릿을 사용하여 예제 VPC를 배포하거나 기존 VPC를 활용할 수 있습니다):
+2. VPC를 배포하세요. 아래 스크립트를 이용하면 간단하게 public 및 private subnet을 포함하는 VPC를 배포하고 배포 결과를 설정파일인 conf/vpc-info에 업데이트까지 자동으로 해 줍니다. 하지만 해당 스크립트 이용이 필수는 아닙니다. 기존에 존재하던 VPC에 대한 정보를 conf/vpc-info 에 업데이트하는 방식으로 이용 가능합니다.:
 ```bash
-cp conf/vpc-info.example conf/vpc-info
-# VPC ID, 서브넷 ID 및 리전 코드로 conf/vpc-info 파일을 편집하세요
+cd base-infra-example/
+./deploy.sh
 ```
 
 3. conf/mcp.json에서 MCP 서버를 구성하세요:
+```bash
+cd ..
+cp conf/mcp.json.example conf/mcp.json
+```
+위에서 복사한 mcp.json을 열어보면 아래와 같이 smithery에서 제공하는 MCP Server 설정의 예시자 smithery의 API key를 제외하고 설정 돼 있습니다. smithery에 로그인 하셔서 API key를 제공받아 설정파일에 적용해야 MCP Server에 대한 접근이 정상적으로 이루어 집니다.
 ```json
 {
   "mcpServers": {
-    "your-mcp-server": {
+    "time-mcp": {
       "command": "npx",
-      "args": ["your-mcp-server-args"]
-    }
-  }
-}
+      "args": [
+        "-y",
+        "@smithery/cli@latest",
+        "run",
+        "@yokingma/time-mcp",
+        "--key",
+        "<your-smithery-key>"
+      ],
+      "bundling": {
+        "nodeModules": ["npm", "@smithery/cli"]
+      }
+    },
+    ...
 ```
 
-Lambda 배포를 위한 번들링 구성도 지정할 수 있습니다(번들링을 추가하는 경우 npx 명령에 필요한 모듈을 미리 배포하여, npx 명령 실행시 모듈을 다운로드 받는 시간을 단축시킬 수 있습니다):
+위 설정의 bundling부분은 필수는 아닙니다. 하지만 이 설정을 통해 Lambda 배포에 번들링 구성을 지정할 경우 npx 명령에 필요한 모듈을 미리 배포하여, npx 명령 실행시 모듈을 다운로드 받는 시간을 단축시킬 수 있습니다:
 ```json
 {
   "mcpServers": {
@@ -144,17 +161,19 @@ npm run build
 ./synth.sh
 ```
 
-6. 스택을 배포하세요:
+6. 스택을 배포하세요. 배포 완료 후 출력되는 BedrockAgentsId 를 기록해 두어야 테스트 과정에서 활용 가능합니다.:
 ```bash
 ./deploy.sh
 ```
 
 ### 배포 테스트
 
-인프라를 배포한 후, client-example 디렉토리에 제공된 Jupyter 노트북을 사용하여 배포를 테스트할 수 있습니다:
+인프라를 배포한 후, client-example 디렉토리에 제공된 Jupyter 노트북파일을 Sagemaker AI Jupyter notebook 인스턴스로 배포하여 테스트할 수 있습니다. 배포가 완료되면 웹브라우저로 접근할 수 있는 URL이 제공됩니다. 노트북을 열면 가장 상단의 Cell에서 agent_id 를 앞서 메모 해 두었던 BedrockAgentsId의 값으로 교체해야 정상적으로 테스트할 수 있습니다.:
 
 ```bash
-jupyter notebook client-example/bedrock-agent-test.ipynb
+cd client-example/
+./generate_template.sh
+./deploy.sh
 ```
 
 ### 더 자세한 MCP 서버 구성 예제
