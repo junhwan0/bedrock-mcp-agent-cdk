@@ -47,6 +47,8 @@ export class BedrockAgentStack extends cdk.Stack {
     for (const [mcpServerName, mcpServerConfig] of Object.entries(props.mcpConfig.mcpServers) as [string, McpServerConfig][]) {
       let bundling = {
         externalModules: ['@aws-sdk/*'],
+          docker: false,
+          forceDockerBundling: false
       };
       
       if (mcpServerConfig.bundling) {
@@ -55,7 +57,9 @@ export class BedrockAgentStack extends cdk.Stack {
           externalModules: [
             ...(mcpServerConfig.bundling.externalModules || []),
             '@aws-sdk/*'
-          ]
+          ],
+          docker: false,
+          forceDockerBundling: false
         };
       }
 
