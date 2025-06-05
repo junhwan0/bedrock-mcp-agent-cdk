@@ -53,7 +53,7 @@ export class BedrockAgentStack extends cdk.Stack {
     NagSuppressions.addResourceSuppressions(lambdaRole, [
       {
         id: 'AwsSolutions-IAM4',
-        reason: 'This role is attached to this lambda function with the managed policies AWSLambdaVPCAccessExecutionRole and AWSLambdaBasicExecutionRole. These are required permissions to create Lambda functions on arbitrary VPCs and to create logs in Cloudwatch Logs.',
+        reason: 'This role is attached to lambda function with the managed policies AWSLambdaVPCAccessExecutionRole and AWSLambdaBasicExecutionRole. These are required permissions to create Lambda functions on arbitrary VPCs and to create a log group in CloudWatch Logs.',
       }
     ]);
 
